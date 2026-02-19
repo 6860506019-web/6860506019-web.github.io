@@ -2,25 +2,97 @@
 <html>
 <head>
   <title>Binary Search Tree</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #4e73df, #1cc88a);
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .container {
+      background: white;
+      width: 80%;
+      max-width: 700px;
+      margin: 50px auto;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      color: #4e73df;
+    }
+
+    input {
+      padding: 10px;
+      margin: 5px;
+      width: 150px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      background-color: #4e73df;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #2e59d9;
+      transform: scale(1.05);
+    }
+
+    #output {
+      background: #f8f9fc;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      text-align: left;
+      white-space: pre-wrap;
+      font-family: monospace;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 14px;
+      color: gray;
+    }
+  </style>
 </head>
 <body>
-  <h1>Binary Search Tree (BST)</h1>
+
+<div class="container">
+  <h1>🌳 Binary Search Tree (BST)</h1>
 
   <input type="number" id="value" placeholder="ใส่ตัวเลข">
-  <input type="number" id="newValue" placeholder="ค่าใหม่ (สำหรับ Update)">
-  <br><br>
+  <input type="number" id="newValue" placeholder="ค่าใหม่ (Update)">
+  <br>
 
   <button onclick="insertValue()">Insert</button>
   <button onclick="deleteValue()">Delete</button>
   <button onclick="updateValue()">Update</button>
   <button onclick="displayTree()">Display</button>
 
-  <h3>ผลลัพธ์:</h3>
-  <pre id="output"></pre>
+  <div id="output"></div>
+
+  <div class="footer">
+    Developed by 6860506019
+  </div>
+</div>
 
 <script>
 
-// ====== Node Class ======
 class Node {
   constructor(value) {
     this.value = value;
@@ -29,32 +101,28 @@ class Node {
   }
 }
 
-// ====== BST Class ======
 class BST {
   constructor() {
     this.root = null;
   }
 
-  // INSERT
   insert(value) {
     const newNode = new Node(value);
-
-    if (this.root === null) {
+    if (!this.root) {
       this.root = newNode;
       return;
     }
 
     let current = this.root;
-
     while (true) {
       if (value < current.value) {
-        if (current.left === null) {
+        if (!current.left) {
           current.left = newNode;
           return;
         }
         current = current.left;
       } else {
-        if (current.right === null) {
+        if (!current.right) {
           current.right = newNode;
           return;
         }
@@ -63,33 +131,23 @@ class BST {
     }
   }
 
-  // FIND MIN (ใช้ตอนลบ)
   findMin(node) {
-    while (node.left !== null) {
-      node = node.left;
-    }
+    while (node.left) node = node.left;
     return node;
   }
 
-  // DELETE
   deleteNode(node, value) {
-    if (node === null) return null;
+    if (!node) return null;
 
     if (value < node.value) {
       node.left = this.deleteNode(node.left, value);
     } else if (value > node.value) {
       node.right = this.deleteNode(node.right, value);
     } else {
-      // ไม่มีลูก
-      if (node.left === null && node.right === null) {
-        return null;
-      }
+      if (!node.left && !node.right) return null;
+      if (!node.left) return node.right;
+      if (!node.right) return node.left;
 
-      // มีลูกข้างเดียว
-      if (node.left === null) return node.right;
-      if (node.right === null) return node.left;
-
-      // มีลูกสองข้าง
       let minRight = this.findMin(node.right);
       node.value = minRight.value;
       node.right = this.deleteNode(node.right, minRight.value);
@@ -102,33 +160,16 @@ class BST {
     this.root = this.deleteNode(this.root, value);
   }
 
-  // INORDER (แสดงเรียงจากน้อยไปมาก)
   inorder(node, result = []) {
-    if (node !== null) {
+    if (node) {
       this.inorder(node.left, result);
       result.push(node.value);
       this.inorder(node.right, result);
     }
     return result;
   }
-
-  // แสดงเป็นต้นไม้
-  printTree(node, space = 0, result = []) {
-    if (node === null) return;
-
-    space += 5;
-
-    this.printTree(node.right, space, result);
-
-    result.push(" ".repeat(space - 5) + node.value);
-
-    this.printTree(node.left, space, result);
-
-    return result;
-  }
 }
 
-// ====== ใช้งาน ======
 const tree = new BST();
 
 function insertValue() {
@@ -150,7 +191,6 @@ function deleteValue() {
 function updateValue() {
   const oldValue = parseInt(document.getElementById("value").value);
   const newValue = parseInt(document.getElementById("newValue").value);
-
   if (!isNaN(oldValue) && !isNaN(newValue)) {
     tree.delete(oldValue);
     tree.insert(newValue);
@@ -160,14 +200,12 @@ function updateValue() {
 }
 
 function displayTree() {
-  let inorderResult = tree.inorder(tree.root).join(" ");
-  let treeStructure = tree.printTree(tree.root).join("\n");
-
-  document.getElementById("output").textContent =
-    "เรียงลำดับ (Inorder):\n" + inorderResult +
-    "\n\nโครงสร้างต้นไม้:\n\n" + treeStructure;
+  const result = tree.inorder(tree.root).join(" ");
+  document.getElementById("output").innerHTML =
+    "<strong>เรียงลำดับ (Inorder):</strong><br>" + result;
 }
 
 </script>
+
 </body>
 </html>
