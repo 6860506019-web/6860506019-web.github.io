@@ -1,94 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Binary Search Tree</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #4e73df, #1cc88a);
-      text-align: center;
-      margin: 0;
-      padding: 0;
-      color: #333;
-    }
+<meta charset="UTF-8">
+<title>Binary Search Tree</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #4e73df, #1cc88a);
+  text-align: center;
+  margin: 0;
+}
 
-    .container {
-      background: white;
-      width: 80%;
-      max-width: 700px;
-      margin: 50px auto;
-      padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
+.container {
+  background: white;
+  width: 90%;
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
 
-    h1 {
-      margin-bottom: 20px;
-      color: #4e73df;
-    }
+h1 {
+  color: #4e73df;
+}
 
-    input {
-      padding: 10px;
-      margin: 5px;
-      width: 150px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-    }
+input {
+  padding: 8px;
+  margin: 5px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
 
-    button {
-      padding: 10px 15px;
-      margin: 5px;
-      border: none;
-      border-radius: 8px;
-      background-color: #4e73df;
-      color: white;
-      font-size: 14px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
+button {
+  padding: 8px 14px;
+  margin: 5px;
+  border: none;
+  border-radius: 8px;
+  background-color: #4e73df;
+  color: white;
+  cursor: pointer;
+}
 
-    button:hover {
-      background-color: #2e59d9;
-      transform: scale(1.05);
-    }
+button:hover {
+  background-color: #2e59d9;
+}
 
-    #output {
-      background: #f8f9fc;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 20px;
-      text-align: left;
-      white-space: pre-wrap;
-      font-family: monospace;
-    }
-
-    .footer {
-      margin-top: 20px;
-      font-size: 14px;
-      color: gray;
-    }
-  </style>
+canvas {
+  margin-top: 20px;
+  border-radius: 10px;
+  background: #f8f9fc;
+}
+</style>
 </head>
-<body>
 
+<body>
 <div class="container">
   <h1>🌳 Binary Search Tree (BST)</h1>
 
   <input type="number" id="value" placeholder="ใส่ตัวเลข">
-  <input type="number" id="newValue" placeholder="ค่าใหม่ (Update)">
-  <br>
-
   <button onclick="insertValue()">Insert</button>
   <button onclick="deleteValue()">Delete</button>
-  <button onclick="updateValue()">Update</button>
   <button onclick="displayTree()">Display</button>
 
-  <div id="output"></div>
-
-  <div class="footer">
-    Developed by 6860506019
-  </div>
+  <canvas id="treeCanvas" width="800" height="400"></canvas>
 </div>
 
 <script>
@@ -98,6 +73,8 @@ class Node {
     this.value = value;
     this.left = null;
     this.right = null;
+    this.x = 0;
+    this.y = 0;
   }
 }
 
@@ -131,11 +108,6 @@ class BST {
     }
   }
 
-  findMin(node) {
-    while (node.left) node = node.left;
-    return node;
-  }
-
   deleteNode(node, value) {
     if (!node) return null;
 
@@ -148,29 +120,22 @@ class BST {
       if (!node.left) return node.right;
       if (!node.right) return node.left;
 
-      let minRight = this.findMin(node.right);
-      node.value = minRight.value;
-      node.right = this.deleteNode(node.right, minRight.value);
+      let min = node.right;
+      while (min.left) min = min.left;
+      node.value = min.value;
+      node.right = this.deleteNode(node.right, min.value);
     }
-
     return node;
   }
 
   delete(value) {
     this.root = this.deleteNode(this.root, value);
   }
-
-  inorder(node, result = []) {
-    if (node) {
-      this.inorder(node.left, result);
-      result.push(node.value);
-      this.inorder(node.right, result);
-    }
-    return result;
-  }
 }
 
 const tree = new BST();
+const canvas = document.getElementById("treeCanvas");
+const ctx = canvas.getContext("2d");
 
 function insertValue() {
   const value = parseInt(document.getElementById("value").value);
@@ -188,24 +153,45 @@ function deleteValue() {
   }
 }
 
-function updateValue() {
-  const oldValue = parseInt(document.getElementById("value").value);
-  const newValue = parseInt(document.getElementById("newValue").value);
-  if (!isNaN(oldValue) && !isNaN(newValue)) {
-    tree.delete(oldValue);
-    tree.insert(newValue);
-    document.getElementById("value").value = "";
-    document.getElementById("newValue").value = "";
-  }
+function displayTree() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawTree(tree.root, canvas.width / 2, 40, canvas.width / 4);
 }
 
-function displayTree() {
-  const result = tree.inorder(tree.root).join(" ");
-  document.getElementById("output").innerHTML =
-    "<strong>เรียงลำดับ (Inorder):</strong><br>" + result;
+function drawTree(node, x, y, offset) {
+  if (!node) return;
+
+  node.x = x;
+  node.y = y;
+
+  if (node.left) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x - offset, y + 70);
+    ctx.stroke();
+    drawTree(node.left, x - offset, y + 70, offset / 2);
+  }
+
+  if (node.right) {
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + offset, y + 70);
+    ctx.stroke();
+    drawTree(node.right, x + offset, y + 70, offset / 2);
+  }
+
+  ctx.beginPath();
+  ctx.arc(x, y, 20, 0, Math.PI * 2);
+  ctx.fillStyle = "#4e73df";
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = "white";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(node.value, x, y);
 }
 
 </script>
-
 </body>
 </html>
