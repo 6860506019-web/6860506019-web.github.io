@@ -1,35 +1,143 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>My Website</title>
+    <title>BST CRUD</title>
     <style>
         body {
-            background-color: #f0f8ff;
             font-family: Arial;
             text-align: center;
+            background-color: #f4f4f4;
         }
-        h1 {
-            color: darkblue;
+        input, button {
+            padding: 8px;
+            margin: 5px;
         }
-        .box {
-            background: white;
-            padding: 20px;
-            margin: 40px auto;
-            width: 300px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px gray;
+        #output {
+            margin-top: 20px;
+            font-size: 18px;
         }
     </style>
 </head>
 <body>
 
-    <div class="box">
-        <h1>สวัสดี 👋</h1>
-        <p>นี่คือเว็บไซต์ของฉัน</p>
-        <a href="[6]Trees.pdf" target="_blank">
-            เปิดไฟล์งาน PDF
-        </a>
-    </div>
+<h1>Binary Search Tree (BST)</h1>
+
+<input type="number" id="value" placeholder="ใส่ตัวเลข">
+<input type="number" id="newValue" placeholder="ค่าใหม่ (สำหรับ Update)">
+<br>
+
+<button onclick="insert()">Insert</button>
+<button onclick="deleteNode()">Delete</button>
+<button onclick="updateNode()">Update</button>
+<button onclick="display()">Display</button>
+
+<div id="output"></div>
+
+<script>
+class Node {
+    constructor(value) {
+        this.value = value;
+        this.left = null;
+        this.right = null;
+    }
+}
+
+class BST {
+    constructor() {
+        this.root = null;
+    }
+
+    insert(value) {
+        this.root = this._insertRec(this.root, value);
+    }
+
+    _insertRec(root, value) {
+        if (root === null) return new Node(value);
+        if (value < root.value)
+            root.left = this._insertRec(root.left, value);
+        else if (value > root.value)
+            root.right = this._insertRec(root.right, value);
+        return root;
+    }
+
+    delete(value) {
+        this.root = this._deleteRec(this.root, value);
+    }
+
+    _deleteRec(root, value) {
+        if (!root) return root;
+
+        if (value < root.value)
+            root.left = this._deleteRec(root.left, value);
+        else if (value > root.value)
+            root.right = this._deleteRec(root.right, value);
+        else {
+            if (!root.left) return root.right;
+            if (!root.right) return root.left;
+
+            root.value = this._minValue(root.right);
+            root.right = this._deleteRec(root.right, root.value);
+        }
+        return root;
+    }
+
+    _minValue(root) {
+        while (root.left) root = root.left;
+        return root.value;
+    }
+
+    search(root, value) {
+        if (!root || root.value === value) return root;
+        if (value < root.value)
+            return this.search(root.left, value);
+        return this.search(root.right, value);
+    }
+
+    inorder(root, result = []) {
+        if (root) {
+            this.inorder(root.left, result);
+            result.push(root.value);
+            this.inorder(root.right, result);
+        }
+        return result;
+    }
+}
+
+const tree = new BST();
+
+function insert() {
+    const value = parseInt(document.getElementById("value").value);
+    if (!isNaN(value)) {
+        tree.insert(value);
+        alert("Insert สำเร็จ");
+    }
+}
+
+function deleteNode() {
+    const value = parseInt(document.getElementById("value").value);
+    if (!isNaN(value)) {
+        tree.delete(value);
+        alert("Delete สำเร็จ");
+    }
+}
+
+function updateNode() {
+    const value = parseInt(document.getElementById("value").value);
+    const newValue = parseInt(document.getElementById("newValue").value);
+
+    if (!isNaN(value) && !isNaN(newValue)) {
+        tree.delete(value);
+        tree.insert(newValue);
+        alert("Update สำเร็จ");
+    }
+}
+
+function display() {
+    const result = tree.inorder(tree.root);
+    document.getElementById("output").innerText =
+        "Inorder Traversal: " + result.join(", ");
+}
+</script>
 
 </body>
 </html>
