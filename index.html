@@ -1,143 +1,173 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>BST CRUD</title>
-    <style>
-        body {
-            font-family: Arial;
-            text-align: center;
-            background-color: #f4f4f4;
-        }
-        input, button {
-            padding: 8px;
-            margin: 5px;
-        }
-        #output {
-            margin-top: 20px;
-            font-size: 18px;
-        }
-    </style>
+  <title>Binary Search Tree</title>
 </head>
 <body>
+  <h1>Binary Search Tree (BST)</h1>
 
-<h1>Binary Search Tree (BST)</h1>
+  <input type="number" id="value" placeholder="ใส่ตัวเลข">
+  <input type="number" id="newValue" placeholder="ค่าใหม่ (สำหรับ Update)">
+  <br><br>
 
-<input type="number" id="value" placeholder="ใส่ตัวเลข">
-<input type="number" id="newValue" placeholder="ค่าใหม่ (สำหรับ Update)">
-<br>
+  <button onclick="insertValue()">Insert</button>
+  <button onclick="deleteValue()">Delete</button>
+  <button onclick="updateValue()">Update</button>
+  <button onclick="displayTree()">Display</button>
 
-<button onclick="insert()">Insert</button>
-<button onclick="deleteNode()">Delete</button>
-<button onclick="updateNode()">Update</button>
-<button onclick="display()">Display</button>
-
-<div id="output"></div>
+  <h3>ผลลัพธ์:</h3>
+  <pre id="output"></pre>
 
 <script>
+
+// ====== Node Class ======
 class Node {
-    constructor(value) {
-        this.value = value;
-        this.left = null;
-        this.right = null;
-    }
+  constructor(value) {
+    this.value = value;
+    this.left = null;
+    this.right = null;
+  }
 }
 
+// ====== BST Class ======
 class BST {
-    constructor() {
-        this.root = null;
+  constructor() {
+    this.root = null;
+  }
+
+  // INSERT
+  insert(value) {
+    const newNode = new Node(value);
+
+    if (this.root === null) {
+      this.root = newNode;
+      return;
     }
 
-    insert(value) {
-        this.root = this._insertRec(this.root, value);
-    }
+    let current = this.root;
 
-    _insertRec(root, value) {
-        if (root === null) return new Node(value);
-        if (value < root.value)
-            root.left = this._insertRec(root.left, value);
-        else if (value > root.value)
-            root.right = this._insertRec(root.right, value);
-        return root;
-    }
-
-    delete(value) {
-        this.root = this._deleteRec(this.root, value);
-    }
-
-    _deleteRec(root, value) {
-        if (!root) return root;
-
-        if (value < root.value)
-            root.left = this._deleteRec(root.left, value);
-        else if (value > root.value)
-            root.right = this._deleteRec(root.right, value);
-        else {
-            if (!root.left) return root.right;
-            if (!root.right) return root.left;
-
-            root.value = this._minValue(root.right);
-            root.right = this._deleteRec(root.right, root.value);
+    while (true) {
+      if (value < current.value) {
+        if (current.left === null) {
+          current.left = newNode;
+          return;
         }
-        return root;
-    }
-
-    _minValue(root) {
-        while (root.left) root = root.left;
-        return root.value;
-    }
-
-    search(root, value) {
-        if (!root || root.value === value) return root;
-        if (value < root.value)
-            return this.search(root.left, value);
-        return this.search(root.right, value);
-    }
-
-    inorder(root, result = []) {
-        if (root) {
-            this.inorder(root.left, result);
-            result.push(root.value);
-            this.inorder(root.right, result);
+        current = current.left;
+      } else {
+        if (current.right === null) {
+          current.right = newNode;
+          return;
         }
-        return result;
+        current = current.right;
+      }
     }
+  }
+
+  // FIND MIN (ใช้ตอนลบ)
+  findMin(node) {
+    while (node.left !== null) {
+      node = node.left;
+    }
+    return node;
+  }
+
+  // DELETE
+  deleteNode(node, value) {
+    if (node === null) return null;
+
+    if (value < node.value) {
+      node.left = this.deleteNode(node.left, value);
+    } else if (value > node.value) {
+      node.right = this.deleteNode(node.right, value);
+    } else {
+      // ไม่มีลูก
+      if (node.left === null && node.right === null) {
+        return null;
+      }
+
+      // มีลูกข้างเดียว
+      if (node.left === null) return node.right;
+      if (node.right === null) return node.left;
+
+      // มีลูกสองข้าง
+      let minRight = this.findMin(node.right);
+      node.value = minRight.value;
+      node.right = this.deleteNode(node.right, minRight.value);
+    }
+
+    return node;
+  }
+
+  delete(value) {
+    this.root = this.deleteNode(this.root, value);
+  }
+
+  // INORDER (แสดงเรียงจากน้อยไปมาก)
+  inorder(node, result = []) {
+    if (node !== null) {
+      this.inorder(node.left, result);
+      result.push(node.value);
+      this.inorder(node.right, result);
+    }
+    return result;
+  }
+
+  // แสดงเป็นต้นไม้
+  printTree(node, space = 0, result = []) {
+    if (node === null) return;
+
+    space += 5;
+
+    this.printTree(node.right, space, result);
+
+    result.push(" ".repeat(space - 5) + node.value);
+
+    this.printTree(node.left, space, result);
+
+    return result;
+  }
 }
 
+// ====== ใช้งาน ======
 const tree = new BST();
 
-function insert() {
-    const value = parseInt(document.getElementById("value").value);
-    if (!isNaN(value)) {
-        tree.insert(value);
-        alert("Insert สำเร็จ");
-    }
+function insertValue() {
+  const value = parseInt(document.getElementById("value").value);
+  if (!isNaN(value)) {
+    tree.insert(value);
+    document.getElementById("value").value = "";
+  }
 }
 
-function deleteNode() {
-    const value = parseInt(document.getElementById("value").value);
-    if (!isNaN(value)) {
-        tree.delete(value);
-        alert("Delete สำเร็จ");
-    }
+function deleteValue() {
+  const value = parseInt(document.getElementById("value").value);
+  if (!isNaN(value)) {
+    tree.delete(value);
+    document.getElementById("value").value = "";
+  }
 }
 
-function updateNode() {
-    const value = parseInt(document.getElementById("value").value);
-    const newValue = parseInt(document.getElementById("newValue").value);
+function updateValue() {
+  const oldValue = parseInt(document.getElementById("value").value);
+  const newValue = parseInt(document.getElementById("newValue").value);
 
-    if (!isNaN(value) && !isNaN(newValue)) {
-        tree.delete(value);
-        tree.insert(newValue);
-        alert("Update สำเร็จ");
-    }
+  if (!isNaN(oldValue) && !isNaN(newValue)) {
+    tree.delete(oldValue);
+    tree.insert(newValue);
+    document.getElementById("value").value = "";
+    document.getElementById("newValue").value = "";
+  }
 }
 
-function display() {
-    const result = tree.inorder(tree.root);
-    document.getElementById("output").innerText =
-        "Inorder Traversal: " + result.join(", ");
+function displayTree() {
+  let inorderResult = tree.inorder(tree.root).join(" ");
+  let treeStructure = tree.printTree(tree.root).join("\n");
+
+  document.getElementById("output").textContent =
+    "เรียงลำดับ (Inorder):\n" + inorderResult +
+    "\n\nโครงสร้างต้นไม้:\n\n" + treeStructure;
 }
+
 </script>
-
 </body>
 </html>
